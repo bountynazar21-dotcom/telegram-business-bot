@@ -14,7 +14,7 @@ dp = Dispatcher()
 active_chats = {}
 
 # Затримка перед відповіддю
-REPLY_DELAY = 120  # 2 хвилини
+REPLY_DELAY = 10  # 2 хвилини
 
 
 def get_reply(text: str) -> str:
