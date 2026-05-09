@@ -56,7 +56,7 @@ async def handle_business_message(message: Message):
         return
 
     # AI відповідь
-    ai_reply = ask_ai(message.text)
+    ai_reply = ask_ai(chat_id,message.text)
 
     # Якщо AI впав
     reply = ai_reply if ai_reply else get_reply(message.text)
