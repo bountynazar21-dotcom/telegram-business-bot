@@ -3,6 +3,8 @@ from aiogram.types import Message
 from config import BOT_TOKEN
 from answers import ANSWERS
 from ai import ask_ai
+from image_ai import generate_image_url
+from db import init_db
 
 import asyncio
 from datetime import datetime
@@ -14,7 +16,7 @@ dp = Dispatcher()
 active_chats = {}
 
 # Затримка перед відповіддю
-REPLY_DELAY = 10  # 2 хвилини
+REPLY_DELAY = 1
 
 
 def get_reply(text: str) -> str:
@@ -32,6 +34,29 @@ def get_reply(text: str) -> str:
     return ANSWERS["unknown"]
 
 
+def is_image_request(text: str) -> bool:
+    text = text.lower()
+
+    image_keywords = [
+        "намалюй",
+        "намалювати",
+        "згенеруй картинку",
+        "згенеруй фото",
+        "створи картинку",
+        "створи фото",
+        "зроби картинку",
+        "зроби фото",
+        "картинку",
+        "фото",
+        "draw",
+        "generate image",
+        "create image",
+        "make image"
+    ]
+
+    return any(word in text for word in image_keywords)
+
+
 @dp.business_message()
 async def handle_business_message(message: Message):
 
@@ -41,24 +66,40 @@ async def handle_business_message(message: Message):
     chat_id = message.chat.id
     business_id = message.business_connection_id
 
+    if not business_id:
+        print("Немає business_connection_id")
+        return
+
     print(f"Нове повідомлення: {message.text}")
 
-    # Запам'ятовуємо час
     message_time = datetime.now().timestamp()
     active_chats[chat_id] = message_time
 
-    # Чекаємо перед відповіддю
     await asyncio.sleep(REPLY_DELAY)
 
-    # Якщо за цей час чат оновився
     if active_chats.get(chat_id) != message_time:
-        print("Користувач уже отримав відповідь")
+        print("Чат оновився, бот мовчить")
+        return
+
+    # Генерація картинки
+    if is_image_request(message.text):
+        print("Запит на генерацію картинки")
+
+        image_url = generate_image_url(message.text)
+
+        await bot.send_photo(
+            chat_id=chat_id,
+            photo=image_url,
+            caption="Готово 😅",
+            business_connection_id=business_id
+        )
+
+        print("Картинку надіслано")
         return
 
     # AI відповідь
-    ai_reply = ask_ai(chat_id,message.text)
+    ai_reply = ask_ai(chat_id, message.text)
 
-    # Якщо AI впав
     reply = ai_reply if ai_reply else get_reply(message.text)
 
     await bot.send_message(
@@ -71,6 +112,7 @@ async def handle_business_message(message: Message):
 
 
 async def main():
+    init_db()
     print("Business AI bot запущений 🚀")
     await dp.start_polling(bot)
 

@@ -68,6 +68,11 @@ Bounty не:
 - відповідай тільки поточний час, який переданий нижче;
 - не вигадуй час.
 
+Якщо людина просить намалювати, створити або згенерувати картинку:
+- не обіцяй, що сам її намалюєш;
+- коротко підтвердь, що запит на картинку зрозумілий;
+- не вигадуй посилання на картинки.
+
 Якщо людина:
 - нервує;
 - засмучена;
@@ -132,8 +137,8 @@ def ask_ai(chat_id, text):
         response = client.chat.completions.create(
             model="llama-3.1-8b-instant",
             messages=messages,
-            temperature=0.5,
-            max_tokens=200
+            temperature=0.45,
+            max_tokens=500
         )
 
         reply = response.choices[0].message.content.strip()
